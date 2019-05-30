@@ -71,7 +71,7 @@ import cucumber.api.testng.AbstractTestNGCucumberTests;
 
 * Corresponding config to be added to **wdio.conf.js** is,
 		
-```json
+```
 reporters: [['allure', {
 outputDir: 'allure-results',
 disableWebdriverStepsReporting: false,
@@ -81,11 +81,11 @@ disableWebdriverScreenshotsReporting: false,
 Steps reporting and screenshots inclusion can be modified by updating the accessors as 'true'
 		
 * To access, generate and open the allure report install this command line tool,
-		* `npm install -g allure-commandline --save-dev`
+	* `npm install -g allure-commandline --save-dev`
 
 * Generate and open Allure report using the below commands,
-		1. <this is to run the test cases> `node_modules\.bin\wdio wdio.conf.js --spec ./test/specs/loginTest.spec.js`
-		2. <this is to generate the report> `node_modules\.bin\allure generate allure-results/ --clean && node_modules\.bin\allure open`
+	1. This is to run the test cases> `node_modules\.bin\wdio wdio.conf.js --spec ./test/specs/loginTest.spec.js`
+	2. This is to generate the report> `node_modules\.bin\allure generate allure-results/ --clean && node_modules\.bin\allure open`
 	
 * This can be  done via package.json 'scripts' as below,
 ```json
@@ -108,7 +108,7 @@ import reporter from '@wdio/allure-reporter'
 
 # Code Snippets
 
-### Take screenshot when failure happens (http://total-qa.com/advanced-selenium/allure-reporting/)
+1. Take screenshot when failure happens (http://total-qa.com/advanced-selenium/allure-reporting/)
 ```java
 	@Attachment(value = "Screenshot of {0}", type = "image/png")
 	public byte[] saveScreenshot(String name, WebDriver driver) {
@@ -123,8 +123,28 @@ import reporter from '@wdio/allure-reporter'
     }
 ```
 
-# AspectWeaverj configuration
-* AspectweaverJ to be configured in pom.xml for all annotations of allure report to work properly, below is a sample,
+2. AllureLogger utility function to customize the report with user provided messages via @step annotaion
+```java
+package utility;
+import io.qameta.allure.Step;
+public class AllureLogger {	
+    private AllureLogger() {
+        // hide default constructor for this util class
+    }    
+    /**
+     * Uses the @Step annotation to log the given log message to Allure.
+     */
+    @Step("{0}")
+    public static void logToAllure(String message) {
+
+    } 
+}
+```
+To call the above method in the test scripts,
+`AllureLogger.logToAllure("Starting the test to create new details");`
+
+# AspectJWeaver configuration
+* AspectJWeaver to be configured in pom.xml for all annotations of allure report to work properly, below is a sample,
 
 ```xml
 </plugin>	        
