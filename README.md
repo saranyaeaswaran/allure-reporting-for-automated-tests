@@ -11,27 +11,115 @@
 * To open the allure report, From cmd prompt run > allure serve \path to project root>\allure-results>
 
 * Dependency to be added to pom.xml if the project is Maven based,
-		```xml
-        <dependency>
+		```<dependency>
 		    <groupId>io.qameta.allure</groupId>
 		    <artifactId>allure-testng</artifactId>
+		    <version>2.10.0</version>
+		</dependency>```
+
+# Allure Report Annotations
+
+* @Description("This is the test case to validate successful login")
+* @Severity(SeverityLevel.BLOCKER)
+* @Step    
+
+# To integrate allure reporting to Jenkins:		
+
+* To integrate allure reporting to Jenkins, please install 'Allure' plugin to jenkins,
+    - Jenkins Homepage > Manage Jenkins > Manage Plugins > 'Allure' from available plugins
+    ![plugin](screenshots/plugin.jpg)    
+    
+* Jenkins Homepage > Global Tool Configurations > Click on the “Allure CommandLine Installation”, specify any preferred name and then provide the Allure installation home path,
+    ![configure](screenshots/configure.jpg)
+
+* In the projects's post build action add allure reporting
+    ![postbuild](screenshots/postbuild.jpg)
+
+## Allure setup for selenium-java-cucumber project
+
+* Dependency to be added
+		```
+        <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-cucumber4-jvm -->
+		<dependency>
+		    <groupId>io.qameta.allure</groupId>
+		    <artifactId>allure-cucumber4-jvm</artifactId>
 		    <version>2.10.0</version>
 		</dependency>
         ```
 
-##Allure Report Annotations
+* Below TestRunner class to be added for cucumber and the tests to be run from here,
+     
+		```package testRunner;
+		import cucumber.api.CucumberOptions;
+		import cucumber.api.testng.AbstractTestNGCucumberTests;
+			@CucumberOptions(features= "src/test/java/features/",
+							 glue="stepDefinitions", 
+							 plugin = { "pretty", "html:target/cucumber-html-reports", "io.qameta.allure.cucumber4jvm.AllureCucumber4Jvm",
+					        "json:target/cucumber-html-reports/cucumber.json"}, monochrome = false)
+			public class TestRunner extends AbstractTestNGCucumberTests {
+		
+			}```
 
-	- Allure report annotations, 
-		@Description("This is the test case to validate successful login")
-		@Severity(SeverityLevel.BLOCKER)
-        @Step    
+## Allure reporting for **webdriverio** project
 
-## AspectWeaverj configuration
+* Referece - https://webdriver.io/docs/allure-reporter.html
+	
+* Install webdriverio allure report using below package.json command,
+		`@wdio/allure-reporter": "^5.7.11"`
 
-AspectweaverJ to be configured in pom.xml for all annotations of allure report to work properly, below is a sample,
+* Corresponding config to be added to wdio.conf.js is,
+		
+           ```reporters: [['allure', {
+		        outputDir: 'allure-results',
+		        disableWebdriverStepsReporting: false,
+		        disableWebdriverScreenshotsReporting: false,
+		    }]]```
+		
+   Steps rpeorting and screenshots inclusion can be modified by updating the accessors as 'true'
+		
+* To access, generate and open the allure report install this command line tool,
+		* npm install -g allure-commandline --save-dev
 
-    ```xml
-    </plugin>	        
+* Generate and open Allure report using the below commands
+		1. <this is to run the test cases> node_modules\.bin\wdio wdio.conf.js --spec ./test/specs/loginTest.spec.js
+		2. <this is to generate the report> node_modules\.bin\allure generate allure-results/ --clean && node_modules\.bin\allure open
+	
+* This can be  done via package.json 'scripts' as below,
+	    "report:generate": "allure generate allure-results/ --clean",
+	    "report:open": "allure open"
+		
+    	Run using >>> `npm run report`
+	
+* When we use 'node_modules\.bin\allure open' a webserver will start to render the report. So its better to keep it running in a separate cmd instance and refresh the report using 'http://10.234.209.240:55368/index.html#
+
+* Using the report API: https://github.com/webdriverio-boneyard/wdio-allure-reporter
+		
+	``` import reporter from '@wdio/allure-reporter'
+		describe('Login Check', () => {
+		    it('To Login', () => {        
+		        reporter.addFeature("Feature1")
+		        reporter.addDescription("This is the test to validate login")```
+
+# Code Snippets
+
+### Take screenshot when failure happens (http://total-qa.com/advanced-selenium/allure-reporting/)
+    ```java
+		@Attachment(value = "Screenshot of {0}", type = "image/png")
+		public byte[] saveScreenshot(String name, WebDriver driver) {
+			return (byte[]) ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+		}
+	 
+		public void run(IHookCallBack iHookCallBack, ITestResult iTestResult) {
+			iHookCallBack.runTestMethod(iTestResult);
+			if (iTestResult.getThrowable() != null) {
+				this.saveScreenshot(iTestResult.getName(), driver);
+			}
+        }```
+
+# AspectWeaverj configuration
+* AspectweaverJ to be configured in pom.xml for all annotations of allure report to work properly, below is a sample,
+
+    ```</plugin>	        
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
@@ -58,105 +146,4 @@ AspectweaverJ to be configured in pom.xml for all annotations of allure report t
                 </dependency>
             </dependencies>        
         </plugin>
-    </plugins>
-    ```
-
-#To integrate allure reporting to Jenkins:
-		
-* To integrate allure reporting to Jenkins, please install 'Allure' plugin to jenkins,
-    - Jenkins Homepage > Manage Jenkins > Manage Plugins > 'Allure' from available plugins
-    ![plugin](screenshots/plugin.jpg)
-    
-* Jenkins Homepage > Global Tool Configurations > Click on the “Allure CommandLine Installation”, specify any preferred name and then provide the Allure installation home path
-    ![configure](screenshots/configure.jpg)
-
-* In the projects's post build action add allure reporting
-    ![postbuild](screenshots/postbuild.jpg)
-
-##Allure setup for selenium-java-cucumber project
-
-* Dependency to be added
-		```xml
-        <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-cucumber4-jvm -->
-		<dependency>
-		    <groupId>io.qameta.allure</groupId>
-		    <artifactId>allure-cucumber4-jvm</artifactId>
-		    <version>2.10.0</version>
-		</dependency>
-        ```
-
-* Below TestRunner class to be added for cucumber and the tests to be run from here,
-     
-		```java
-        package testRunner;
-		import cucumber.api.CucumberOptions;
-		import cucumber.api.testng.AbstractTestNGCucumberTests;
-			@CucumberOptions(features= "src/test/java/features/",
-							 glue="stepDefinitions", 
-							 plugin = { "pretty", "html:target/cucumber-html-reports", "io.qameta.allure.cucumber4jvm.AllureCucumber4Jvm",
-					        "json:target/cucumber-html-reports/cucumber.json"}, monochrome = false)
-			public class TestRunner extends AbstractTestNGCucumberTests {
-		
-			}
-        ```
-
-## Allure reporting for **webdriverio** project
-
-	* Referece - https://webdriver.io/docs/allure-reporter.html
-	
-	* Install webdriverio allure report using below package.json command,
-		`@wdio/allure-reporter": "^5.7.11"`
-
-	* Corresponding config to be added to wdio.conf.js is,
-		
-           reporters: [['allure', {
-		        outputDir: 'allure-results',
-		        disableWebdriverStepsReporting: false,
-		        disableWebdriverScreenshotsReporting: false,
-		    }]],
-		
-		Steps rpeorting and screenshots inclusion can be modified by updating the accessors as 'true'
-		
-	
-	* To access, generate and open the allure report install this command line tool,
-		* npm install -g allure-commandline --save-dev
-
-	* Generate and open Allure report using the below commands
-		1. <this is to run the test cases> node_modules\.bin\wdio wdio.conf.js --spec ./test/specs/loginTest.spec.js
-		2. <this is to generate the report> node_modules\.bin\allure generate allure-results/ --clean && node_modules\.bin\allure open
-	
-	* This can be  done via package.json 'scripts' as below,
-		    "report:generate": "allure generate allure-results/ --clean",
-		    "report:open": "allure open"
-		
-		Run using >>> `npm run report`
-	
-	* When we use 'node_modules\.bin\allure open' a webserver will start to render the report. So its better to keep it running in a separate cmd instance and refresh the report using 'http://10.234.209.240:55368/index.html#
-
-	* Using the report API: https://github.com/webdriverio-boneyard/wdio-allure-reporter
-		
-		```js
-        import reporter from '@wdio/allure-reporter'
-		describe('Login Check', () => {
-		    it('To Login', () => {        
-		        reporter.addFeature("Feature1")
-		        reporter.addDescription("This is the test to validate login")
-        ```
-		
-	
-##Code Snippets
-
-### Take screenshot when failure happens (http://total-qa.com/advanced-selenium/allure-reporting/)
-    ```java
-		@Attachment(value = "Screenshot of {0}", type = "image/png")
-		public byte[] saveScreenshot(String name, WebDriver driver) {
-			return (byte[]) ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-		}
-	 
-		public void run(IHookCallBack iHookCallBack, ITestResult iTestResult) {
-			iHookCallBack.runTestMethod(iTestResult);
-			if (iTestResult.getThrowable() != null) {
-				this.saveScreenshot(iTestResult.getName(), driver);
-			}
-        }```
-
+    </plugins>```
